@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>Assignment-4</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="container container-table">
+            <div class="row vertical-center-row">
+                <div class="text-center">
+                    <h1>Welcome to Trivia Mania</h1>
+                    <img id="bg_img" alt="background image for trivia" src="img/trivia-image.jpg">
+                    <form>
+                        <a href="#" id="score_btn" style="display:none">View Score</a>
+                        <a href="#" id="que_btn_add" style="display:none">Add New question</a>
+                        <div id="show_score" style="display : none">
+                            <label style="color: green">Right Answer: </label>
+                            <p style="color: green" id="right_ans"></p>
+                            <br>
+                            <label style="color: red">Wrong Answer: </label>
+                            <p style="color: red" id="wrong_ans"></p>
+                        </div>
+                        <div id="show_que"></div>
+                        <div id="que_add" style="display : none">
+                            <div class="well">
+                                <label>Question:</label>
+                                <input class="form-control" type="text" id="que_id" name="question" placeholder="Please enter the question">
+                                <p>&nbsp;</p>
+                                <label>Answer:</label>
+                                <input class="form-control" type="text" name="answer" id="ans_id" placeholder="Please enter the answer">
+                                <p>&nbsp;</p>
+                                <input class="btn" type="button" value="Submit" id="submitBtnId">
+                            </div>
+                        </div>
+                        <p>&nbsp;</p>
+                        <input type="button" class="btn-primary btn-lg" value="Let's Play..!!" id="lets_play_btn">
+                        <br>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $("#que_btn_add").click(function() {
+            $("#score_btn").hide();
+            $("#que_add").show();
+            $("#show_que").hide();
+            $("#que_btn_add").hide();
+            $("#lets_play_btn").hide();
+        });
+
+        $("#score_btn").click(function() {
+
+            $("#show_score").show(700);
+
+
+            $.ajax({
+                    method: "GET",
+                    url: "http://localhost:3000/score",
+                    crossDomain: true,
+                    dataType: "json"
+                })
+                .done(function(msg) {
+                    if (msg.answer == false) {
+                        msg.answer = "false";
+                    }
+                    console.log(msg);
+                    $("#right_ans").text(msg.right);
+                    $("#wrong_ans").text(msg.wrong);
+                });
+        });
+
+        $("#submitBtnId").click(function() {
+
+            alert("question set is stored in Database")
+        });
+
+
+        $(".btn").click(function() {
+
+            var question = $("#que_id").val();
+            // console.log(question);
+            var answer = $("#ans_id").val();
+            //console.log(answer);
+
+            var data = {
+                "question": question,
+                "answer": answer
+            }
+
+            var dataJSON = JSON.stringify(data);
+            console.log(dataJSON);
+            $.ajax({
+                    method: "POST",
+                    url: "http://localhost:3000/question",
+                    crossDomain: true,
+                    dataType: "json",
+                    data: data
+                })
+                .done(function(msg) {
+
+                    if (msg.answer == false) {
+                        msg.answer = "false";
+                    }
+                    $("#show_que").show();
+                    $("#que_btn_add").show();
+                    $("#que_add").hide();
+
+                    var displayQuestions = function(element, index, array) {
+
+                        //console.log(array);
+                        var len = array.length;
+                        console.log(len);
+                        if (index == array.length - 1) {
+
+                            var $item = $(
+                                '<form>' +
+                                '<div id="allQueId" class="btn">' +
+                                '<label>Question : </label><input type="text"  class="form-control" name="que" id="queId' + index + '"><p>&nbsp</p>' +
+                                '<label>Answer : </label><input type="text" class="form-control" name="ans" placeholder="Please Enter your Answer" id="ansId' + index + '"><p>&nbsp</p>' +
+                                '<input type="button" class="btn-primary" value="Submit Answer" id="sendBtnId' + index + '"><br>' +
+                                '</div>' +
+                                '</form>'
+                            );
+
+                            $("#show_que").append($item);
+                            $("#queId" + index).val(array[index].question);
+                        }
+
+                    }
+
+                    msg.forEach(displayQuestions);
+
+                });
+        });
+
+        $("#lets_play_btn").click(function() {
+
+
+
+            $.ajax({
+                method: "GET",
+                url: "http://localhost:3000/question",
+                crossDomain: true,
+                dataType: "json",
+            })
+
+            .done(function(msg) {
+
+                //console.log(msg);
+                if (msg.answer == false) {
+                    msg.answer = "false";
+                }
+                $("#allQueId").show(500);
+                $("#score_btn").show(500);
+                $("#que_btn_add").show(500);
+                $("#que_add").hide(500);
+                $("#bg_img").hide(500)
+                $("#lets_play_btn").hide(500);
+
+                var displayQuestions = function(element, index, array) {
+
+                    var $item = $(
+                        '<form>' +
+                        '<div id="allQueId" class="btn">' +
+                        '<div class="well">' +
+                        '<label>Question : </label><input type="text"  class="form-control" name="que" id="queId' + index + '"><p>&nbsp</p>' +
+                        '<label>Answer : </label><input type="text" class="form-control" name="ans" placeholder="Please Enter your Answer" id="ansId' + index + '"><p>&nbsp</p>' +
+                        '<input type="button" class="btn-primary" value="Submit Answer" id="sendBtnId' + index + '"><br>' +
+                        '</div>' +
+                        '</div' +
+                        '</form>'
+                    );
+
+                    $("#show_que").append($item);
+                    $("#queId" + index).val(array[index].question);
+
+                }
+
+                msg.forEach(displayQuestions);
+
+
+                var getAnswers = function(element, index, array) {
+
+                    $("#sendBtnId" + index).click(function() {
+                        alert("Your Answer has been Recorded..!");
+
+                        var ans = $("#ansId" + index).val();
+                        var ansId = array[index]._id;
+                        var actualAns = array[index].answer;
+
+                        // console.log(ans);
+                        //console.log(ansId);
+
+                        var data = {
+                            "ans_id": ansId,
+                            "possibleAns": ans,
+                            "answer": actualAns
+                        }
+                        var dataJSON = JSON.stringify(data);
+                        // console.log(JSON.stringify(data));
+                        $.ajax({
+
+                            method: "POST",
+                            url: "http://localhost:3000/answer",
+                            crossDomain: true,
+                            dataType: "json",
+                            data: data
+                        })
+
+                        .done(function(msg) {
+
+                            //console.log(msg);
+                            if (msg.answer == false) {
+                                msg.answer = "false";
+                            }
+
+
+                        })
+
+                    });
+                }
+                msg.forEach(getAnswers);
+
+            });
+        });
+    </script>
+</body>
+
+</html>
